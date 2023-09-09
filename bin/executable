@@ -1,0 +1,4 @@
+#!/bin/bash
+# Make a file executable
+
+chmod 755 $1

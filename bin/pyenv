@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""
+Python venv handler
+"""
+
+import argparse
+import os
+import sys
+import subprocess as sp
+import shutil
+
+
+def get_global_path():
+    return os.environ.get('PYENV_PATH') or (
+        os.path.expanduser(os.path.join('~', '.pyenv'))
+    )
+
+def get_venv_path(is_global):
+    return get_global_path() if is_global else os.path.join(os.getcwd(), '.venvs')
+
+def create_venv(name, is_global, python_version):
+    path = os.path.join(get_venv_path(is_global), name)
+
+    env_cmd = ' '.join([f"python{python_version if python_version else '3'}", "-m", "venv", "--symlinks", "--upgrade-deps", "--prompt", f"'{name}{'@' + python_version if python_version else ''}{'' if is_global else ' [local]'}'", f"'${path}'"])
+    sp.run(env_cmd, check=True, shell=True)
+
+    print(path)
+
+
+
+def list_venvs(is_global, show_path):
+    base_path = get_venv_path(is_global)
+
+    try:
+        for name in os.listdir(base_path):
+            if name.startswith('.'):
+                continue
+            path = os.path.join(base_path, name)
+            if os.path.isdir(path) and os.path.isfile(cfg_path := os.path.join(path, 'pyvenv.cfg')):
+                if show_path:
+                    name = path
+
+                with open(cfg_path, 'r') as f:
+                    for line in f.readlines():
+                        if line.startswith('version'):
+                            major, minor, _ = line.split('=')[1].strip().split('.')
+                            name = f"{name}@{major}.{minor}"
+
+                print(name)
+    except FileNotFoundError:
+        print('No venvs found.')
+
+
+def activate_venv(name, is_global):
+    base_path = get_venv_path(is_global)
+
+    path = os.path.join(base_path, name)
+    if not os.path.isdir(path):
+        print(f"venv '{name}' not found")
+        return
+
+
+    activate_path = os.path.join(path, 'Scripts', 'activate.bat') if sys.platform == 'win32' else os.path.join(path, 'bin', 'activate')
+    print(activate_path)
+
+
+def remove_venv(name, is_global):
+    base_path = get_venv_path(is_global)
+
+    path = os.path.join(base_path, name)
+    if not os.path.isdir(path):
+        print(f'{name} not found.')
+        return
+
+    shutil.rmtree(path)
+    print(f'{name} removed.')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Python venv handler')
+    subparsers = parser.add_subparsers(dest='command', required=True)
+
+    create_parser = subparsers.add_parser('create', help='Create a new venv')
+    create_parser.add_argument('name', help='Name of the new venv')
+    create_parser.add_argument('-g', '--global', action='store_true', help='Create venv in global directory')
+    create_parser.add_argument('-v', '--version', help='Python version to use')
+
+    list_parser = subparsers.add_parser('list', help='List all venvs')
+    list_parser.add_argument('-g', '--global', action='store_true', help='List global venvs')
+    list_parser.add_argument('-p', '--path', action='store_true', help='Show path of venvs')
+
+    activate_parser = subparsers.add_parser('activate', help='Activate a venv')
+    activate_parser.add_argument('name', help='Name of the venv to activate')
+    activate_parser.add_argument('-g', '--global', action='store_true', help='Activate venv from global directory')
+
+    activate_parser = subparsers.add_parser('remove', help='Remove a venv')
+    activate_parser.add_argument('name', help='Name of the venv to remove')
+    activate_parser.add_argument('-g', '--global', action='store_true', help='Remove venv from global directory')
+
+    args = parser.parse_args()
+    args = vars(args)
+
+    if args["command"] == 'create':
+        create_venv(args["name"], args["global"], args["version"])
+    elif args["command"] == 'list':
+        list_venvs(args['global'], args['path'])
+    elif args["command"] == 'activate':
+        activate_venv(args["name"], args["global"])
+    elif args["command"] == 'remove':
+        remove_venv(args["name"], args["global"])

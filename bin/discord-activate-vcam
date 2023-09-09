@@ -1,0 +1,9 @@
+#!/bin/bash
+# Remove Discord's code signature so it can be used with VCam (might be unnecessary now)
+
+if [[ uname != 'Darwin' ]]; then
+  echo "This script is for Mac only"
+  exit 1
+fi
+
+sudo codesign --remove-signature "/Applications/Discord.app/Contents/Frameworks/Discord Helper (Renderer).app"

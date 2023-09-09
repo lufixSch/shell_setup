@@ -1,0 +1,10 @@
+#!/bin/zsh
+# Show or hide hidden files in Finder
+
+if [[ uname != 'Darwin' ]]; then
+  echo "This script is for Mac only"
+  exit 1
+fi
+
+defaults write com.apple.finder AppleShowAllFiles -bool $1
+KILLALL Finder
