@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+echo -e "
+\033[90m
+Created: 1/12/22
+by: Lukas Schuettler
+
+Backup script for your shell environment
+\033[0m
+"
+
+source $HOME/shell_setup/lib/backup_lib.sh
+
+if [[ $(uname) == "Darwin" ]]; then
+    echo -e "\nBundle Homebrew dependencies -------------------------------"
+    brew_bundle
+    echo -e "done"
+elif [[ $(uname) == "Linux" ]]; then
+    echo -e "\nBundle Pacman dependencies ---------------------------------"
+    pacman_bundle
+    echo -e "done"
+
+    echo -e "\nBackup KDE settings ----------------------------------------"
+    kde_backup
+    echo -e "done"
+fi
+
+echo -e "\nBundle Python dependencies for base installations ----------"
+python_bundle
+echo -e "done"
+
+echo -e "\nBundle Python VENV dependencies for all environments -------"
+venv_bundle
+echo -e "done"
+
+echo -e "\nBundle global NPM dependencies -----------------------------"
+npm_bundle
+echo -e "done"
+
+echo -e "\nSave OMZ Plugins -------------------------------------------"
+omz_plugins
+echo -e "done"
+
+echo -e "\nBacking up VSCode ------------------------------------------"
+vscode
+echo -e "done"
+
+echo -e "\nCommit changes ---------------------------------------------"
+cd $BASE_PATH
+git add $BASE_PATH
+git commit -m "Backup $(date)"
+git push

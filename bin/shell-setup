@@ -1,0 +1,28 @@
+#!/bin/bash
+echo -e "
+\033[90m
+Created: 1/12/22
+by: Lukas Schuettler
+
+Setup script for your shell environment
+\033[0m
+"
+
+source $HOME/shell_setup/lib/setup_lib.sh
+
+echo -e "Creating Symlinks for all dotfiles ---------------------------"
+create_symlinks
+echo -e "\nDone"
+
+echo -e "\nInstalling basic packages ----------------------------------"
+install_basics
+echo -e "\nDone"
+
+echo -e "\nInstalling Oh-My-Zsh ---------------------------------------"
+ohmyzsh
+ohmyzsh_plugins
+echo -e "\nDone"
+
+echo -e "\nSetting up VSCode ------------------------------------------"
+vscode
+echo -e "\nDone"
